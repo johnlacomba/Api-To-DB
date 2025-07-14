@@ -45,38 +45,39 @@ namespace API_To_DB
 
         static void Main(string[] args)
         {
+            // Create the DynamoDB client object
             var ddbClient = new AmazonDynamoDBClient(GetAccountCredentials(), Amazon.RegionEndpoint.USEast1);
             #pragma warning disable CS0618 // Type or member is obsolete
+            // Create the DynamoDB table object
             var table = Table.LoadTable(ddbClient, "API-To-DB");
             #pragma warning restore CS0618 // Type or member is obsolete
-
+            // Create the Http client object
             HttpClient client = new HttpClient();
             client.BaseAddress = new Uri(URL);
 
-            // Add an Accept header for JSON format.
+            // Add an Accept header for JSON format
             client.DefaultRequestHeaders.Accept.Add(
             new MediaTypeWithQualityHeaderValue("application/json"));
 
-            // List data response.
-            HttpResponseMessage response = client.GetAsync(urlParameters).Result;  // Blocking call! Program will wait here until a response is received or a timeout occurs.
+            // List data response
+            HttpResponseMessage response = client.GetAsync(urlParameters).Result;  // Blocking call! Program will wait here until a response is received or a timeout occurs
             if (response.IsSuccessStatusCode)
             {
                 
-
-                // Parse the response body.
+                // Parse the http response body
                 var dataObjects = response.Content.ReadAsAsync<IEnumerable<DataObject>>().Result;  //Make sure to add a reference to System.Net.Http.Formatting.dll
                 foreach (var d in dataObjects)
                 {
                     Console.WriteLine("{0}", d.Name + " | " + d.Address + " | " + d.Zip + " | " + d.Country + " | " + d.EmployeeCount + " | " + d.Industry + " | " + d.MarketCap + " | " + d.Domain + " | " + d.Logo + " | " + d.CeoName );
-                    //var jsonText = "{\"Country\":" + d.Country + ",\"Name\":\"" + d.Name + "\",\"Address\":\"" + d.Address + "\",\"Zip\":\"" + d.Zip + "\"\"EmployeeCount\":\"" + d.EmployeeCount + "\"\"Industry\":\"" + d.Industry + "\"\"MarketCap\":\"" + d.MarketCap + "\"\"Domain\":\"" + d.Domain + "\"\"Logo\":\"" + d.Logo + "\"\"CeoName\":\"" + d.CeoName + "\"}";
 
-                    // Create the request for put
+                    // Create the request for putItem
                     var putItemRequest = new PutItemRequest
                     {
                         TableName = "API-To-DB",
                         Item = new Dictionary<string, AttributeValue> { }
                     };
 
+                    // Add attributes from the API response to the PutItemRequest object
                     putItemRequest.Item.Add("Country", new AttributeValue
                     {
                         S = d.Country
@@ -127,7 +128,7 @@ namespace API_To_DB
                         S = d.CeoName
                     });
 
-                    // Upload the items to the DB
+                    // Upload the items to the DB and return the status
                     var putItemResponse = ddbClient.PutItemAsync(putItemRequest).Result;
                     Console.WriteLine("{0}", putItemResponse.HttpStatusCode);
 
@@ -136,13 +137,12 @@ namespace API_To_DB
             }
             else
             {
+                // If the http request isn't successful return the status
                 Console.WriteLine("{0} ({1})", (int)response.StatusCode, response.ReasonPhrase);
             }
 
-            // Make any other calls using HttpClient here.
-
-            // Dispose once all HttpClient calls are complete. This is not necessary if the containing object will be disposed of; for example in this case the HttpClient instance will be disposed automatically when the application terminates so the following call is superfluous.
-            //client.Dispose();
+            // Dispose once all HttpClient calls are complete. This is not necessary if the containing object will be disposed of; for example in this case the HttpClient instance will be disposed automatically when the application terminates so the following call is superfluous
+            client.Dispose();
         }
     }
 }
