@@ -13,7 +13,7 @@ using Amazon.SecurityToken;
 
 namespace API_To_DB
 {
-    
+    // The DataObject used to store the attributes from the API response
     public class DataObject
     {
         public required string Name { get; set; }
@@ -28,11 +28,13 @@ namespace API_To_DB
         public required string CeoName { get; set; }
     }
 
-    public class Class1
+    public class CallAPIAndUpload
     {
+        // Configure the API endpoint and API key
         private const string URL = "https://fake-json-api.mock.beeceptor.com/companies";
         private const string urlParameters = "?api_key=123";
 
+        // Configure the AWS account credentials using Visual Studio's AWS Explorer
         private static AWSCredentials GetAccountCredentials(string profileName = "Esparno")
         {
             var chain = new CredentialProfileStoreChain();
@@ -59,7 +61,7 @@ namespace API_To_DB
             client.DefaultRequestHeaders.Accept.Add(
             new MediaTypeWithQualityHeaderValue("application/json"));
 
-            // List data response
+            // Call the API and check if the response shows success
             HttpResponseMessage response = client.GetAsync(urlParameters).Result;  // Blocking call! Program will wait here until a response is received or a timeout occurs
             if (response.IsSuccessStatusCode)
             {
