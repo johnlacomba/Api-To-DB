@@ -1,38 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using Amazon.DynamoDBv2;
-using Amazon.DynamoDBv2.DataModel;
-using Amazon.DynamoDBv2.DocumentModel;
-using Amazon.DynamoDBv2.Model;
-using Amazon.Runtime;
-using Amazon.Runtime.CredentialManagement;
-using Amazon.SecurityToken;
-
-namespace API_To_DB
+﻿namespace API_To_DB
 {
-    // The DataObject used to store the attributes from the API response
-    public class DataObject
-    {
-        public required string Name { get; set; }
-        public required string Address { get; set; }
-        public required string Zip { get; set; }
-        public required string Country { get; set; }
-        public required string EmployeeCount { get; set; }
-        public required string Industry { get; set; }
-        public required string MarketCap { get; set; }
-        public required string Domain { get; set; }
-        public required string Logo { get; set; }
-        public required string CeoName { get; set; }
-    }
+    using System;
+    using System.Collections.Generic;
+    using System.Net;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
+    using Amazon.DynamoDBv2;
+    using Amazon.DynamoDBv2.DataModel;
+    using Amazon.DynamoDBv2.DocumentModel;
+    using Amazon.DynamoDBv2.Model;
+    using Amazon.Runtime;
+    using Amazon.Runtime.CredentialManagement;
+    using Amazon.SecurityToken;
 
     public class CallAPIAndUpload
     {
         // Configure the API endpoint and API key
         private const string URL = "https://fake-json-api.mock.beeceptor.com/companies";
-        private const string urlParameters = "?api_key=123";
+        private const string UrlParameters = "?api_key=123";
 
         // Configure the AWS account credentials using Visual Studio's AWS Explorer
         private static AWSCredentials GetAccountCredentials(string profileName = "Esparno")
@@ -49,14 +34,16 @@ namespace API_To_DB
             }
         }
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             // Create the DynamoDB client object
             var ddbClient = new AmazonDynamoDBClient(GetAccountCredentials(), Amazon.RegionEndpoint.USEast1);
             #pragma warning disable CS0618 // Type or member is obsolete
+
             // Create the DynamoDB table object
             var table = Table.LoadTable(ddbClient, "API-To-DB");
             #pragma warning restore CS0618 // Type or member is obsolete
+
             // Create the Http client object
             HttpClient client = new HttpClient();
             client.BaseAddress = new Uri(URL);
@@ -66,10 +53,9 @@ namespace API_To_DB
             new MediaTypeWithQualityHeaderValue("application/json"));
 
             // Call the API and check if the response shows success
-            HttpResponseMessage response = client.GetAsync(urlParameters).Result;  // Blocking call! Program will wait here until a response is received or a timeout occurs
+            HttpResponseMessage response = client.GetAsync(UrlParameters).Result;  // Blocking call! Program will wait here until a response is received or a timeout occurs
             if (response.IsSuccessStatusCode)
             {
-                
                 // Parse the http response body
                 var dataObjects = response.Content.ReadAsAsync<IEnumerable<DataObject>>().Result;  //Make sure to add a reference to System.Net.Http.Formatting.dll
                 foreach (var d in dataObjects)
@@ -80,7 +66,7 @@ namespace API_To_DB
                     var putItemRequest = new PutItemRequest
                     {
                         TableName = "API-To-DB",
-                        Item = new Dictionary<string, AttributeValue> { }
+                        Item = new Dictionary<string, AttributeValue> { },
                     };
 
                     try
@@ -88,52 +74,52 @@ namespace API_To_DB
                         // Add attributes from the API response to the PutItemRequest object
                         putItemRequest.Item.Add("Country", new AttributeValue
                         {
-                            S = d.Country
+                            S = d.Country,
                         });
 
                         putItemRequest.Item.Add("Name", new AttributeValue
                         {
-                            S = d.Name
+                            S = d.Name,
                         });
 
                         putItemRequest.Item.Add("Address", new AttributeValue
                         {
-                            S = d.Address
+                            S = d.Address,
                         });
 
                         putItemRequest.Item.Add("Zip", new AttributeValue
                         {
-                            S = d.Zip
+                            S = d.Zip,
                         });
 
                         putItemRequest.Item.Add("EmployeeCount", new AttributeValue
                         {
-                            S = d.EmployeeCount
+                            S = d.EmployeeCount,
                         });
 
                         putItemRequest.Item.Add("Industry", new AttributeValue
                         {
-                            S = d.Industry
+                            S = d.Industry,
                         });
 
                         putItemRequest.Item.Add("MarketCap", new AttributeValue
                         {
-                            S = d.MarketCap
+                            S = d.MarketCap,
                         });
 
                         putItemRequest.Item.Add("Domain", new AttributeValue
                         {
-                            S = d.Domain
+                            S = d.Domain,
                         });
 
                         putItemRequest.Item.Add("Logo", new AttributeValue
                         {
-                            S = d.Logo
+                            S = d.Logo,
                         });
 
                         putItemRequest.Item.Add("CeoName", new AttributeValue
                         {
-                            S = d.CeoName
+                            S = d.CeoName,
                         });
                     }
                     catch (Exception ex)
@@ -141,16 +127,15 @@ namespace API_To_DB
                         Console.WriteLine("{0}", ex);
                         throw;
                     }
-                    // Upload the items to the DB and return the status
+
+                    // Upload the items to the DB and return the status code
                     var putItemResponse = ddbClient.PutItemAsync(putItemRequest).Result;
                     Console.WriteLine("{0}", putItemResponse.HttpStatusCode);
-
                 }
-                
             }
             else
             {
-                // If the http request isn't successful return the status
+                // If the http request isn't successful return the status code
                 Console.WriteLine("{0} ({1})", (int)response.StatusCode, response.ReasonPhrase);
             }
 
