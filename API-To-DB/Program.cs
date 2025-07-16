@@ -39,10 +39,14 @@ namespace API_To_DB
         {
             var chain = new CredentialProfileStoreChain();
             if (chain.TryGetAWSCredentials(profileName, out AWSCredentials awsCredentials))
+            {
                 return awsCredentials;
-
-            // ToDo: Error Handler
-            return null;
+            }
+            else
+            {
+                Console.WriteLine("{0}", "ERROR - There was a problem getting the AWS credentials.");
+                throw new ArgumentException("ERROR - There was a problem getting the AWS credentials.");
+            }
         }
 
         static void Main(string[] args)
@@ -79,57 +83,64 @@ namespace API_To_DB
                         Item = new Dictionary<string, AttributeValue> { }
                     };
 
-                    // Add attributes from the API response to the PutItemRequest object
-                    putItemRequest.Item.Add("Country", new AttributeValue
+                    try
                     {
-                        S = d.Country
-                    });
+                        // Add attributes from the API response to the PutItemRequest object
+                        putItemRequest.Item.Add("Country", new AttributeValue
+                        {
+                            S = d.Country
+                        });
 
-                    putItemRequest.Item.Add("Name", new AttributeValue
-                    {
-                        S = d.Name
-                    });
+                        putItemRequest.Item.Add("Name", new AttributeValue
+                        {
+                            S = d.Name
+                        });
 
-                    putItemRequest.Item.Add("Address", new AttributeValue
-                    {
-                        S = d.Address
-                    });
+                        putItemRequest.Item.Add("Address", new AttributeValue
+                        {
+                            S = d.Address
+                        });
 
-                    putItemRequest.Item.Add("Zip", new AttributeValue
-                    {
-                        S = d.Zip
-                    });
+                        putItemRequest.Item.Add("Zip", new AttributeValue
+                        {
+                            S = d.Zip
+                        });
 
-                    putItemRequest.Item.Add("EmployeeCount", new AttributeValue
-                    {
-                        S = d.EmployeeCount
-                    });
+                        putItemRequest.Item.Add("EmployeeCount", new AttributeValue
+                        {
+                            S = d.EmployeeCount
+                        });
 
-                    putItemRequest.Item.Add("Industry", new AttributeValue
-                    {
-                        S = d.Industry
-                    });
+                        putItemRequest.Item.Add("Industry", new AttributeValue
+                        {
+                            S = d.Industry
+                        });
 
-                    putItemRequest.Item.Add("MarketCap", new AttributeValue
-                    {
-                        S = d.MarketCap
-                    });
-                    
-                    putItemRequest.Item.Add("Domain", new AttributeValue
-                    {
-                        S = d.Domain
-                    }); 
-                    
-                    putItemRequest.Item.Add("Logo", new AttributeValue
-                    {
-                        S = d.Logo
-                    }); 
-                    
-                    putItemRequest.Item.Add("CeoName", new AttributeValue
-                    {
-                        S = d.CeoName
-                    });
+                        putItemRequest.Item.Add("MarketCap", new AttributeValue
+                        {
+                            S = d.MarketCap
+                        });
 
+                        putItemRequest.Item.Add("Domain", new AttributeValue
+                        {
+                            S = d.Domain
+                        });
+
+                        putItemRequest.Item.Add("Logo", new AttributeValue
+                        {
+                            S = d.Logo
+                        });
+
+                        putItemRequest.Item.Add("CeoName", new AttributeValue
+                        {
+                            S = d.CeoName
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("{0}", ex);
+                        throw;
+                    }
                     // Upload the items to the DB and return the status
                     var putItemResponse = ddbClient.PutItemAsync(putItemRequest).Result;
                     Console.WriteLine("{0}", putItemResponse.HttpStatusCode);
